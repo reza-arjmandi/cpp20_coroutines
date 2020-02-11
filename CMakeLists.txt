@@ -7,3 +7,4 @@ set(CMAKE_CXX_FLAGS "-fcoroutines-ts -stdlib=libc++")
 set(CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(generator)
+add_subdirectory(task)
