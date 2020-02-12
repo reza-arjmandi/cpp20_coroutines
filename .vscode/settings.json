@@ -68,6 +68,7 @@
         "coroutine": "cpp",
         "ios": "cpp",
         "locale": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "__memory": "cpp"
     }
 }
