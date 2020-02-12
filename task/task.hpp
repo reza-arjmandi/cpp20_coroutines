@@ -188,42 +188,6 @@ private:
 
 };
 
-template<typename T>
-class task_promise<T&> : public task_promise_base
-{
-public:
-
-	task_promise() noexcept = default;
-
-	task<T&> get_return_object() noexcept;
-
-	void unhandled_exception() noexcept
-	{
-		m_exception = std::current_exception();
-	}
-
-	void return_value(T& value) noexcept
-	{
-		m_value = std::addressof(value);
-	}
-
-	T& result()
-	{
-		if (m_exception)
-		{
-			std::rethrow_exception(m_exception);
-		}
-
-		return *m_value;
-	}
-
-	private:
-
-	T* m_value = nullptr;
-	std::exception_ptr m_exception;
-
-};
-
 /// \brief
 /// A task represents an operation that produces a result both lazily
 /// and asynchronously.
@@ -384,10 +348,4 @@ task<T> task_promise<T>::get_return_object() noexcept
 inline task<void> task_promise<void>::get_return_object() noexcept
 {
 	return task<void>{ std::experimental::coroutine_handle<task_promise>::from_promise(*this) };
-}
-
-template<typename T>
-task<T&> task_promise<T&>::get_return_object() noexcept
-{
-	return task<T&>{ std::experimental::coroutine_handle<task_promise>::from_promise(*this) };
 }
