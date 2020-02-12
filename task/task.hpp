@@ -1,15 +1,25 @@
 #pragma once
 
-#include <broken_promise.hpp>
-
 #include <atomic>
 #include <exception>
 #include <utility>
 #include <type_traits>
 #include <cstdint>
 #include <cassert>
+#include <stdexcept>
 
 #include <experimental/coroutine>
+
+/// \brief
+/// Exception thrown when you attempt to retrieve the result of
+/// a task that has been detached from its promise/coroutine.
+class broken_promise : public std::logic_error
+{
+public:
+	broken_promise()
+		: std::logic_error("broken promise")
+	{}
+};
 
 template<typename T> class task;
 
