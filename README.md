@@ -1,7 +1,7 @@
 # cpp20_coroutines
 
 This repository is created in order to teach C++20 coroutines and usages.  
-I've used [cppcoro](https://github.com/lewissbaker/cppcoro) and simplified it to clarify control flow of each class.  
+I've used [cppcoro](https://github.com/lewissbaker/cppcoro) and simplified it to clarify control flow of each classes.  
 You can watch learning videos in my [youtube channel](https://www.youtube.com/channel/UCD63rKtTY3WoxaCE88Rg9AA)
 Thanks to [cppcoro](https://github.com/lewissbaker/cppcoro) for it's perfect implementation.
 
