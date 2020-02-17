@@ -8,7 +8,7 @@ namespace fs = std::experimental::filesystem;
 
 
 // Lists the immediate contents of a directory.
-cppcoro::generator<fs::directory_entry> list_directory(fs::path path)
+generator<fs::directory_entry> list_directory(fs::path path)
 {
     for(auto entry : fs::directory_iterator(path)) {
         co_yield entry;
@@ -16,7 +16,7 @@ cppcoro::generator<fs::directory_entry> list_directory(fs::path path)
     co_return;
 }
 
-cppcoro::recursive_generator<fs::directory_entry> list_directory_recursive(fs::path path)
+recursive_generator<fs::directory_entry> list_directory_recursive(fs::path path)
 {
   for (auto& entry : list_directory(path))
   {
