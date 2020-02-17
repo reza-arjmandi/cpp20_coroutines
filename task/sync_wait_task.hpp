@@ -1,10 +1,10 @@
 #pragma once
 
 #include <experimental/coroutine>
-#include <awaitable_traits.hpp>
-
 #include <cassert>
 #include <exception>
+
+#include "awaitable_traits.hpp"
 
 template<typename RESULT>
 class sync_wait_task;

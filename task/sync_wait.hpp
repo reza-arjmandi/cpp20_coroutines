@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sync_wait_task.hpp>
-
 #include <cstdint>
 #include <atomic>
+
+#include "sync_wait_task.hpp"
 
 template<typename AWAITABLE>
 auto sync_wait(AWAITABLE&& awaitable)
