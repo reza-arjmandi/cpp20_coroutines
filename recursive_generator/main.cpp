@@ -30,8 +30,8 @@ recursive_generator<fs::directory_entry> list_directory_recursive(fs::path path)
 
 int main(int argc, char** argv)
 {
-    auto fs_generator = list_directory_recursive(fs::path("/home/rarjmandi/Desktop"));
-    for(const auto& elem : fs_generator){
+    auto list_dirs = list_directory_recursive(fs::path("/home"));
+    for(const auto& elem : list_dirs){
       std::cout << elem << std::endl;
     }
     return 0;
