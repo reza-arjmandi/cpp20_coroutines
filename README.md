@@ -13,6 +13,7 @@ if you want to learn how it works, you can see this video:
 [slides](https://docs.google.com/presentation/d/1-tGOwPQdld-Xb6Mfqa0h7BrltTkh5ymiD9dzZfa6Epg/edit#slide=id.gc6f919934_0_0)
   
 fibonacci example:
+
 ```c++
 Generator<std::uint64_t> fibonacci()
 {
@@ -47,6 +48,7 @@ if you want to learn how it works, you can see this video:
 [slides](https://docs.google.com/presentation/d/1qTD4ZCwkLvaBn7OTPBuM1IU7l2yTq2KvEoyhXcFLiPA/edit?usp=sharing)
   
 task example:
+
 ```c++
 task<std::string> make_word()
 {
@@ -64,6 +66,40 @@ int main(int argc, char** argv)
 {
     auto task = make_hello();
     std::cout <<  sync_wait(task) << std::endl;
+    return 0;
+}
+```
+
+## `recursive_generator`
+
+if you want to learn how it works, you can see this video:  
+[C++20 coroutines, implement recursive_generator](https://youtu.be/D1NFMEGQewg)
+  
+[slides](https://docs.google.com/presentation/d/1t0Dvw6kFCnSJYbOf1zJsRRdJxXYcLEnQMzJ_78VgQx8/edit?usp=sharing)
+  
+recursive_generator example:
+
+```c++
+generator<fs::directory_entry> list_directory(fs::path path);
+
+recursive_generator<fs::directory_entry> list_directory_recursive(fs::path path)
+{
+  for (auto& entry : list_directory(path))
+  {
+    co_yield entry;
+    if (fs::is_directory(entry))
+    {
+      co_yield list_directory_recursive(entry.path());
+    }
+  }
+}
+
+int main(int argc, char** argv)
+{
+    auto list_dirs = list_directory_recursive(fs::path("/home"));
+    for(const auto& elem : list_dirs){
+      std::cout << elem << std::endl;
+    }
     return 0;
 }
 ```

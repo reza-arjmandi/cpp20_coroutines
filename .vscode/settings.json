@@ -72,6 +72,9 @@
         "__memory": "cpp",
         "codecvt": "cpp",
         "filesystem": "cpp",
-        "stack": "cpp"
-    }
+        "stack": "cpp",
+        "__errc": "cpp",
+        "__node_handle": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }
