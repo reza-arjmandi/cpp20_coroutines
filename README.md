@@ -8,7 +8,7 @@ I appreciate [cppcoro](https://github.com/lewissbaker/cppcoro) for it's perfect 
 ## `generator`
 
 if you want to learn how it works, you can see this video:  
-[C++20 coroutines, implement generator in 5 minutes](https://www.youtube.com/watch?v=qmWLD5fr774&feature=youtu.be)
+[C++20 coroutines, implement generator](https://youtu.be/VB6LsOhoUOE)
   
 [slides](https://docs.google.com/presentation/d/1-tGOwPQdld-Xb6Mfqa0h7BrltTkh5ymiD9dzZfa6Epg/edit#slide=id.gc6f919934_0_0)
   
