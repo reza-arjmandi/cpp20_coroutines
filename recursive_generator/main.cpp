@@ -4,7 +4,7 @@
 #include "recursive_generator.hpp"
 #include "generator.hpp"
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 
 // Lists the immediate contents of a directory.
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 {
     auto list_dirs = list_directory_recursive(fs::path("/home"));
     for(const auto& elem : list_dirs){
-      std::cout << elem << std::endl;
+      std::cout << elem.path() << std::endl;
     }
     return 0;
 }

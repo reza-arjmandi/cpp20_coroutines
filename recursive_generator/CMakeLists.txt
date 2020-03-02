@@ -1,5 +1,4 @@
 set(CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-fcoroutines-ts -stdlib=libc++")
 add_executable(recursive_generator main.cpp)
-target_link_libraries(recursive_generator c++experimental)
+target_link_libraries(recursive_generator)
 set_property(TARGET recursive_generator PROPERTY CXX_STANDARD 17)
