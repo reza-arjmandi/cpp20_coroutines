@@ -114,8 +114,6 @@ if you want to learn how it works, you can see this video:
 single_consumer_event example:
 
 ```c++
-#include <cppcoro/single_consumer_event.hpp>
-
 cppcoro::single_consumer_event event;
 std::string value;
 
