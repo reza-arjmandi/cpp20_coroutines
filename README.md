@@ -114,10 +114,10 @@ if you want to learn how it works, you can see this video:
 single_consumer_event example:
 
 ```c++
-cppcoro::single_consumer_event event;
+single_consumer_event event;
 std::string value;
 
-cppcoro::task<> consumer()
+task<> consumer()
 {
   // Coroutine will suspend here until some thread calls event.set()
   // eg. inside the producer() function below.
