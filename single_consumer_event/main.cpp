@@ -2,20 +2,23 @@
 #include <iostream>
 #include <chrono>
 #include <mutex>
+#include <vector>
 #include <condition_variable>
 
 #include <single_consumer_event.hpp>
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/task.hpp>
 
-#define with_coroutine
+// #define with_coroutine
 
-std::string value;
+std::string shared_value;
+std::vector<std::string> consumer_vector;
 std::chrono::time_point<std::chrono::high_resolution_clock> start;
 std::chrono::time_point<std::chrono::high_resolution_clock> end;
 int number_of_test = 1000000;
 
 #ifdef with_coroutine
+
   cppcoro::single_consumer_event event;
 
   cppcoro::task<> consumer()
@@ -23,13 +26,13 @@ int number_of_test = 1000000;
     // Coroutine will suspend here until some thread calls event.set()
     // eg. inside the producer() function below.
     co_await event;
+    consumer_vector.push_back(shared_value);
     end = std::chrono::high_resolution_clock::now();
-    // std::cout << "consumer got: " << value << std::endl;
   }
 
   void producer()
   {
-    value = "foo";
+    shared_value = "foo";
 
     // This will resume the consumer() coroutine inside the call to set()
     // if it is currently suspended.
@@ -61,6 +64,7 @@ int number_of_test = 1000000;
     std::cout << "average elapsed time: " << sum / number_of_test
          << " ns" << std::endl;
   }
+  
 #else
 
   std::mutex m;
@@ -68,20 +72,23 @@ int number_of_test = 1000000;
   bool ready = false;
   bool processed = false;
   
+  //Thread 1
   void consumer()
   {
     std::unique_lock<std::mutex> lk(m);
     cv.wait(lk, []{return ready;});
+    consumer_vector.push_back(shared_value);
     end = std::chrono::high_resolution_clock::now();
     lk.unlock();
     cv.notify_one();
   }
 
+  //Thread 1
   void producer()
   {
     {
       std::lock_guard<std::mutex> lk(m);
-      value = "foo";
+      shared_value = "foo";
       ready = true;
     }
     start = std::chrono::high_resolution_clock::now();

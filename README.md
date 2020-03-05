@@ -103,3 +103,37 @@ int main(int argc, char** argv)
     return 0;
 }
 ```
+
+## `single_consumer_event`
+
+if you want to learn how it works, you can see this video:  
+[C++20 coroutines, implement single_consumer_event](https://youtu.be/D1NFMEGQewg)
+  
+[slides](https://docs.google.com/presentation/d/1vYeDY_Yc5XJUVhVFkpRrYRxDJQFSbWvReD40PJD0dd8/edit?usp=sharing)
+  
+single_consumer_event example:
+
+```c++
+#include <cppcoro/single_consumer_event.hpp>
+
+cppcoro::single_consumer_event event;
+std::string value;
+
+cppcoro::task<> consumer()
+{
+  // Coroutine will suspend here until some thread calls event.set()
+  // eg. inside the producer() function below.
+  co_await event;
+
+  std::cout << value << std::endl;
+}
+
+void producer()
+{
+  value = "foo";
+
+  // This will resume the consumer() coroutine inside the call to set()
+  // if it is currently suspended.
+  event.set();
+}
+```
