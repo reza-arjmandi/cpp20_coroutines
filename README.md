@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 ## `single_consumer_event`
 
 if you want to learn how it works, you can see this video:  
-[C++20 coroutines, implement single_consumer_event](https://youtu.be/D1NFMEGQewg)
+[C++20 coroutines, synchronize producer-consumer threads by single_consumer_event](https://youtu.be/xmh2xaMtBHQ)
   
 [slides](https://docs.google.com/presentation/d/1vYeDY_Yc5XJUVhVFkpRrYRxDJQFSbWvReD40PJD0dd8/edit?usp=sharing)
   
