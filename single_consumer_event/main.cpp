@@ -1,9 +1,28 @@
 #include <iostream>
 #include <queue>
 #include <numeric>
+#include <exception>
 
 #include "Sample1.h"
 #include "Sample2.h"
+
+template<typename T>
+void assert_equal(const T& a, const T& b)
+{
+  if(a == b) {
+    return;
+  }
+  
+  class Assert_equal_exception : public std::exception {
+    public:
+    const char* what() const noexcept override 
+    {
+      return "assert_equal exception";
+    }
+  };
+
+  throw Assert_equal_exception();
+}
 
 int main(int argc, char** argv)
 {
@@ -13,7 +32,7 @@ int main(int argc, char** argv)
 
   Sample1 sample1 {data};
   sample1.run();
-  assert(sample1.get_consumer_data() == data);
+  assert_equal(sample1.get_consumer_data(), data);
   auto sample1_elapsed = sample1.get_elapsed_time().count(); 
   std::cout 
     << "sample1 elapsed time : " 
@@ -22,7 +41,7 @@ int main(int argc, char** argv)
 
   Sample2 sample2 {data};
   sample2.run();
-  assert(sample2.get_consumer_data() == data);
+  assert_equal(sample2.get_consumer_data(), data);
   auto sample2_elapsed = sample2.get_elapsed_time().count(); 
   std::cout 
     << "sample2 elapsed time : " 
