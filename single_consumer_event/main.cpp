@@ -1,115 +1,38 @@
-#include <thread>
 #include <iostream>
-#include <chrono>
-#include <mutex>
-#include <vector>
-#include <condition_variable>
+#include <queue>
+#include <numeric>
 
-#include <single_consumer_event.hpp>
-#include <cppcoro/sync_wait.hpp>
-#include <cppcoro/task.hpp>
+#include "Sample1.h"
+#include "Sample2.h"
 
-// #define with_coroutine
+int main(int argc, char** argv)
+{
 
-std::string shared_value;
-std::vector<std::string> consumer_vector;
-std::chrono::time_point<std::chrono::high_resolution_clock> start;
-std::chrono::time_point<std::chrono::high_resolution_clock> end;
-int number_of_test = 1000000;
+  std::vector<int> data{1000000000};
+  std::iota(data.begin(), data.end(), 1);
 
-#ifdef with_coroutine
+  Sample1 sample1 {data};
+  sample1.run();
+  assert(sample1.get_consumer_data() == data);
+  auto sample1_elapsed = sample1.get_elapsed_time().count(); 
+  std::cout 
+    << "sample1 elapsed time : " 
+    << sample1_elapsed 
+    << " ns" << std::endl;
 
-  cppcoro::single_consumer_event event;
+  Sample2 sample2 {data};
+  sample2.run();
+  assert(sample2.get_consumer_data() == data);
+  auto sample2_elapsed = sample2.get_elapsed_time().count(); 
+  std::cout 
+    << "sample2 elapsed time : " 
+    << sample2_elapsed 
+    << " ns" << std::endl;
 
-  cppcoro::task<> consumer()
-  {
-    // Coroutine will suspend here until some thread calls event.set()
-    // eg. inside the producer() function below.
-    co_await event;
-    consumer_vector.push_back(shared_value);
-    end = std::chrono::high_resolution_clock::now();
-  }
+  std::cout << "sample2 " 
+    << ((sample1_elapsed - sample2_elapsed) / 
+        static_cast<double>(sample1_elapsed)) * 100 
+    << "% faster than sample1" << std::endl; 
 
-  void producer()
-  {
-    shared_value = "foo";
-
-    // This will resume the consumer() coroutine inside the call to set()
-    // if it is currently suspended.
-    start = std::chrono::high_resolution_clock::now();
-    event.set();
-  }
-
-  void consume()
-  {
-      auto consumer_task = consumer();
-      cppcoro::sync_wait(consumer_task);
-  }
-
-  int main(int argc, char ** argv)
-  {
-    auto sum = 0.0;
-    for(auto i = 0; i < number_of_test; i++)
-    {
-      std::thread consume_thread{consume};
-      std::thread produce_thread{producer};
-      consume_thread.join();
-      produce_thread.join();
-      sum += std::chrono::duration_cast<std::chrono::nanoseconds>(
-          end - start).count();
-      event.reset();
-    }
-      
-
-    std::cout << "average elapsed time: " << sum / number_of_test
-         << " ns" << std::endl;
-  }
-  
-#else
-
-  std::mutex m;
-  std::condition_variable cv;
-  bool ready = false;
-  bool processed = false;
-  
-  //Thread 1
-  void consumer()
-  {
-    std::unique_lock<std::mutex> lk(m);
-    cv.wait(lk, []{return ready;});
-    consumer_vector.push_back(shared_value);
-    end = std::chrono::high_resolution_clock::now();
-    lk.unlock();
-    cv.notify_one();
-  }
-
-  //Thread 1
-  void producer()
-  {
-    {
-      std::lock_guard<std::mutex> lk(m);
-      shared_value = "foo";
-      ready = true;
-    }
-    start = std::chrono::high_resolution_clock::now();
-    cv.notify_one();
-  }
-
-  int main(int argc, char ** argv)
-  {
-    auto sum = 0.0;
-    for(auto i = 0; i < number_of_test; i++)
-    {
-      std::thread consume_thread{consumer};
-      std::thread produce_thread{producer};
-      consume_thread.join();
-      produce_thread.join();
-      sum += std::chrono::duration_cast<std::chrono::nanoseconds>(
-          end - start).count();
-      ready = false;
-    }
-
-    std::cout << "average elapsed time: " << sum / number_of_test
-         << " ns" << std::endl;
-  }
-#endif
+  return 0;
+}
