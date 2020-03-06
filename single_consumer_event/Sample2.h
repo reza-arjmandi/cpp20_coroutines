@@ -17,6 +17,7 @@ public:
   void run()
   {
       std::thread consume_thread{&Sample2::consume, this};
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
       std::thread produce_thread{&Sample2::producer, this};
       consume_thread.join();
       produce_thread.join();
