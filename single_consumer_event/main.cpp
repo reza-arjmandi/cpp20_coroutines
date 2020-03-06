@@ -8,7 +8,7 @@
 int main(int argc, char** argv)
 {
 
-  std::vector<int> data{1000000000};
+  std::vector<int> data(1000000);
   std::iota(data.begin(), data.end(), 1);
 
   Sample1 sample1 {data};

@@ -45,6 +45,7 @@ private:
     for(const auto& elem : _producer_data)
     {
       {
+        _ready = false;
         std::lock_guard<std::mutex> lk(_mutex);
         _shared_queue.push(elem);
         _ready = true;
@@ -63,7 +64,6 @@ private:
       _condition_variable.wait(lk, [&]{return _ready;});
       elem = _shared_queue.front();
       _shared_queue.pop();
-      _ready = false;
     }
     
     _end_time = std::chrono::high_resolution_clock::now();
