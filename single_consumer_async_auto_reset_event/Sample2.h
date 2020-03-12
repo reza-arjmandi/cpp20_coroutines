@@ -1,16 +1,14 @@
 #pragma once
 
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-#include <chrono>
-#include <vector>
+#include <cppcoro/single_consumer_async_auto_reset_event.hpp>
+#include <cppcoro/sync_wait.hpp>
+#include <cppcoro/task.hpp>
 
-class Sample1 {
+class Sample2 {
 
 public:
 
-  Sample1(std::vector<int>& producer_data):
+  Sample2(std::vector<int>& producer_data):
     _producer_data(producer_data),
     _consumer_data(producer_data.size())
   {
@@ -18,10 +16,9 @@ public:
 
   void run()
   {
-      std::thread produce_thread{&Sample1::producer, this};
+      std::thread consume_thread{&Sample2::consume, this};
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-      std::thread consume_thread{&Sample1::consumer, this};
+      std::thread produce_thread{&Sample2::producer, this};
 
       consume_thread.join();
       produce_thread.join();
@@ -41,43 +38,44 @@ public:
 
 private:
 
+  void consume()
+  {
+      auto consumer_task = consumer();
+      cppcoro::sync_wait(consumer_task);
+  }
+
   void producer()
   {
     _start_time = std::chrono::high_resolution_clock::now();
 
     for(const auto& elem : _producer_data)
     {
-      {
-        _ready = false;
-        std::lock_guard<std::mutex> lk(_mutex);
-        _shared_queue.push(elem);
-        _ready = true;
-      }
-      
-      _condition_variable.notify_one();
+      _shared_queue.push(elem);
+      // This will resume the consumer() coroutine inside the call to set()
+      // if it is currently suspended.
+      _event.set();
     }
-    
   }
 
-  void consumer()
+  cppcoro::task<> consumer()
   {
     for(auto& elem : _consumer_data)
     {
-      std::unique_lock<std::mutex> lk(_mutex);
-      _condition_variable.wait(lk, [&]{return _ready;});
+      // Coroutine will suspend here until some thread calls event.set()
+      // eg. inside the producer() function below.
+      co_await _event;
       elem = _shared_queue.front();
       _shared_queue.pop();
     }
-    
+
     _end_time = std::chrono::high_resolution_clock::now();
   }
 
   std::vector<int> _producer_data;
   std::vector<int> _consumer_data;
   std::queue<int> _shared_queue;
-  std::mutex _mutex;
-  std::condition_variable _condition_variable;
-  bool _ready = false;
+  cppcoro::single_consumer_async_auto_reset_event _event;
   std::chrono::time_point<std::chrono::high_resolution_clock> _start_time;
   std::chrono::time_point<std::chrono::high_resolution_clock> _end_time;
+
 };

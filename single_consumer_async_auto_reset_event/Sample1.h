@@ -20,7 +20,6 @@ public:
   {
       std::thread produce_thread{&Sample1::producer, this};
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
       std::thread consume_thread{&Sample1::consumer, this};
 
       consume_thread.join();

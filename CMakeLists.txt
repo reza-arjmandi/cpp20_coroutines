@@ -9,8 +9,10 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 set(CXX_STANDARD_REQUIRED ON)
+set(INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(generator)
 add_subdirectory(task)
 add_subdirectory(recursive_generator)
 add_subdirectory(single_consumer_event)
+add_subdirectory(single_consumer_async_auto_reset_event)

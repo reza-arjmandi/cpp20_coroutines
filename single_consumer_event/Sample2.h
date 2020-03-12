@@ -1,6 +1,6 @@
 #pragma once
 
-#include <single_consumer_event.hpp>
+#include <cppcoro/single_consumer_event.hpp>
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/task.hpp>
 
