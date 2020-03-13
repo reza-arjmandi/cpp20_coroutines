@@ -74,7 +74,17 @@
         "filesystem": "cpp",
         "stack": "cpp",
         "__errc": "cpp",
-        "__node_handle": "cpp"
+        "__node_handle": "cpp",
+        "strstream": "cpp",
+        "complex": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "cfenv": "cpp",
+        "cinttypes": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp",
+        "__tree": "cpp"
     },
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }

@@ -1,32 +1,29 @@
 #pragma once
 
 #include <cppcoro/single_consumer_async_auto_reset_event.hpp>
+#include <cppcoro/when_all.hpp>
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/task.hpp>
+#include "Random_generator.h"
 
 class Sample2 {
 
 public:
 
-  Sample2(std::vector<int>& producer_data):
-    _producer_data(producer_data),
-    _consumer_data(producer_data.size())
+  Sample2(std::size_t data_size):
+    _data_size(data_size),
+    _result_data(data_size)
   {
   }
 
   void run()
   {
-      std::thread consume_thread{&Sample2::consume, this};
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      std::thread produce_thread{&Sample2::producer, this};
-
-      consume_thread.join();
-      produce_thread.join();
+    cppcoro::sync_wait(cppcoro::when_all(consumer(), producer()));
   }
 
-  std::vector<int> get_consumer_data() const
+  std::vector<std::size_t> get_result_data() const
   {
-    return _consumer_data;
+    return _result_data;
   }
 
   std::chrono::nanoseconds get_elapsed_time()
@@ -38,43 +35,38 @@ public:
 
 private:
 
-  void consume()
-  {
-      auto consumer_task = consumer();
-      cppcoro::sync_wait(consumer_task);
-  }
 
-  void producer()
+  cppcoro::task<> producer()
   {
     _start_time = std::chrono::high_resolution_clock::now();
 
-    for(const auto& elem : _producer_data)
+    for(auto i = 0; i < _data_size; i++)
     {
-      _shared_queue.push(elem);
-      // This will resume the consumer() coroutine inside the call to set()
-      // if it is currently suspended.
+      _shared_queue.push(i);
       _event.set();
     }
+    co_return;
   }
 
   cppcoro::task<> consumer()
   {
-    for(auto& elem : _consumer_data)
+    std::hash<int> hash;
+    for(auto& elem : _result_data)
     {
-      // Coroutine will suspend here until some thread calls event.set()
-      // eg. inside the producer() function below.
       co_await _event;
-      elem = _shared_queue.front();
+      auto value = _shared_queue.front();
       _shared_queue.pop();
+      elem = hash(value);
     }
 
     _end_time = std::chrono::high_resolution_clock::now();
   }
 
-  std::vector<int> _producer_data;
-  std::vector<int> _consumer_data;
+  std::vector<std::size_t> _result_data;
   std::queue<int> _shared_queue;
+  std::size_t _data_size;
   cppcoro::single_consumer_async_auto_reset_event _event;
+  Random_generator _random_generator;
   std::chrono::time_point<std::chrono::high_resolution_clock> _start_time;
   std::chrono::time_point<std::chrono::high_resolution_clock> _end_time;
 

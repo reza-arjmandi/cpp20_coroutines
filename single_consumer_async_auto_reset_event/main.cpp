@@ -9,7 +9,7 @@
 template<typename T>
 void assert_equal(const T& a, const T& b)
 {
-  if(a == b) {
+  if(a==b) {
     return;
   }
   
@@ -26,22 +26,23 @@ void assert_equal(const T& a, const T& b)
 
 int main(int argc, char** argv)
 {
-
-  std::vector<int> data(1000000);
-  std::iota(data.begin(), data.end(), 1);
-
-  Sample1 sample1 {data};
+  std::size_t data_size(9000000);
+  std::vector<std::size_t> expected_data(data_size);
+  std::generate(expected_data.begin(), expected_data.end(), 
+    [idx=0]()mutable{return std::hash<int>{}(idx++);});
+  
+  Sample1 sample1 {data_size};
   sample1.run();
-  assert_equal(sample1.get_consumer_data(), data);
+  assert_equal(sample1.get_result_data(), expected_data);
   auto sample1_elapsed = sample1.get_elapsed_time().count(); 
   std::cout 
     << "sample1 elapsed time : " 
     << sample1_elapsed 
     << " ns" << std::endl;
 
-  Sample2 sample2 {data};
+  Sample2 sample2 {data_size};
   sample2.run();
-  assert_equal(sample2.get_consumer_data(), data);
+  assert_equal(sample2.get_result_data(), expected_data);
   auto sample2_elapsed = sample2.get_elapsed_time().count(); 
   std::cout 
     << "sample2 elapsed time : " 

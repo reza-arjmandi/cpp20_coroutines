@@ -5,30 +5,29 @@
 #include <thread>
 #include <chrono>
 #include <vector>
+#include <functional>
 
 class Sample1 {
 
 public:
 
-  Sample1(std::vector<int>& producer_data):
-    _producer_data(producer_data),
-    _consumer_data(producer_data.size())
+  Sample1(std::size_t data_size):
+    _data_size(data_size),
+    _result_data(data_size)
   {
   }
 
   void run()
   {
-      std::thread produce_thread{&Sample1::producer, this};
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
       std::thread consume_thread{&Sample1::consumer, this};
-
+      std::thread produce_thread{&Sample1::producer, this};
       consume_thread.join();
       produce_thread.join();
   }
 
-  std::vector<int> get_consumer_data() const
+  std::vector<std::size_t> get_result_data() const
   {
-    return _consumer_data;
+    return _result_data;
   }
 
   std::chrono::nanoseconds get_elapsed_time()
@@ -44,39 +43,43 @@ private:
   {
     _start_time = std::chrono::high_resolution_clock::now();
 
-    for(const auto& elem : _producer_data)
+    for(auto i = 0; i < _data_size; i++)
     {
-      {
-        _ready = false;
-        std::lock_guard<std::mutex> lk(_mutex);
-        _shared_queue.push(elem);
-        _ready = true;
-      }
-      
-      _condition_variable.notify_one();
+      std::lock_guard<std::mutex> lk(_mutex);
+      _shared_queue.push(i);
     }
     
   }
 
   void consumer()
   {
-    for(auto& elem : _consumer_data)
+    std::hash<int> hash;
+    std::size_t idx = 0;
+    while(idx != _data_size)
     {
-      std::unique_lock<std::mutex> lk(_mutex);
-      _condition_variable.wait(lk, [&]{return _ready;});
-      elem = _shared_queue.front();
-      _shared_queue.pop();
+      int value = -1;
+      {
+        std::lock_guard<std::mutex> lk(_mutex);
+        if(_shared_queue.size() > 0)
+        {
+          value = _shared_queue.front();
+          _shared_queue.pop();
+        }
+      }
+  
+      if(value != -1)
+      {
+        _result_data[idx++] = hash(value);
+      }
     }
     
     _end_time = std::chrono::high_resolution_clock::now();
   }
 
-  std::vector<int> _producer_data;
-  std::vector<int> _consumer_data;
+  std::vector<std::size_t> _result_data;
   std::queue<int> _shared_queue;
+  std::size_t _data_size;
   std::mutex _mutex;
-  std::condition_variable _condition_variable;
-  bool _ready = false;
   std::chrono::time_point<std::chrono::high_resolution_clock> _start_time;
   std::chrono::time_point<std::chrono::high_resolution_clock> _end_time;
 };
