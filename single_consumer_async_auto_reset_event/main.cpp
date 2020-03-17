@@ -6,10 +6,14 @@
 #include "Sample1.h"
 #include "Sample2.h"
 
-template<typename T>
-void assert_equal(const T& a, const T& b)
+void assert_equal(
+  const std::vector<std::string>& producer_data, 
+  const std::vector<std::size_t>& consumer_data)
 {
-  if(a==b) {
+  if(std::equal(producer_data.cbegin(), producer_data.cend(), consumer_data.cbegin(), 
+  [hash = std::hash<std::string>()](const auto& elem1, const auto& elem2){
+    return hash(elem1) == elem2;
+  })){
     return;
   }
   
@@ -26,14 +30,11 @@ void assert_equal(const T& a, const T& b)
 
 int main(int argc, char** argv)
 {
-  std::size_t data_size(9000000);
-  std::vector<std::size_t> expected_data(data_size);
-  std::generate(expected_data.begin(), expected_data.end(), 
-    [idx=0]()mutable{return std::hash<int>{}(idx++);});
+  std::size_t data_size(1000000);
   
   Sample1 sample1 {data_size};
   sample1.run();
-  assert_equal(sample1.get_result_data(), expected_data);
+  assert_equal(sample1.get_producer_data(), sample1.get_consumer_data());
   auto sample1_elapsed = sample1.get_elapsed_time().count(); 
   std::cout 
     << "sample1 elapsed time : " 
@@ -42,7 +43,7 @@ int main(int argc, char** argv)
 
   Sample2 sample2 {data_size};
   sample2.run();
-  assert_equal(sample2.get_result_data(), expected_data);
+  assert_equal(sample2.get_producer_data(), sample2.get_consumer_data());
   auto sample2_elapsed = sample2.get_elapsed_time().count(); 
   std::cout 
     << "sample2 elapsed time : " 
