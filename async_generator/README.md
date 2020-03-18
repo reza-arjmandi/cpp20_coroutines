@@ -107,6 +107,7 @@ by `async_generator`, `task` and `single_consumer_event`.
 Let's see the test body.
 
 ```c++
+    //...
     cppcoro::single_consumer_event p1;
     cppcoro::single_consumer_event p2;
     cppcoro::single_consumer_event p3;
@@ -134,4 +135,59 @@ auto produce = [&]() -> cppcoro::async_generator<std::uint32_t>
 Then the producer is implemented as a lambda function. The return type of lambda
 function is an object from `async_generator` and it causes this lambda
 function to turn into a coroutine. So it can use `co_await` and `co_yield`
-operators in its body.
+operators in its body.  
+Producer generates values in an asynchronous manner. Every time that it
+co_awaits `p1`, `p2` or `p3` objects, it's suspended. And the producer will be
+resumed by calling the `set()` function of event objects (`p1`, `p2` and `p3`)
+asynchronously.  
+Let's see the consumer.
+
+```c++
+//...
+bool consumerFinished = false;
+
+auto consume = [&]() -> cppcoro::task<>
+{
+    auto generator = produce();
+    auto it = co_await generator.begin();
+    CHECK(*it == 1u);
+    (void)co_await ++it;
+    CHECK(*it == 2u);
+    co_await c1;
+    (void)co_await ++it;
+    CHECK(it == generator.end());
+    consumerFinished = true;
+};
+//...
+```
+
+Also consumer is implemented as a lambda function. The return type of lambda
+function is an object from `task` and it causes this lambda function to turn
+into a coroutine. If you don't know about `task`, I recommend watching one of
+my previous videos about implementing the `task` class. you can find this video
+in my YouTube channel.  
+In the `consumer`, first an object from the producer is created, then `begin()`
+function is called, this function returns an awaitable object. then awaitable
+object is awaited, and it causes the producer to be resumed till the producer
+reaches a `co_yield` operator and suspended, finally `begin()` function returns
+an `iterator` object.  
+Consumer can access to the values of generator by dereference the `iterator`
+object.  
+Producer is resumed by co_awaiting the `operator++()` of the `iterator` object.
+Let's execute the producer and consumer tasks.  
+
+```c++
+//...
+auto unblock = [&]() -> cppcoro::task<>
+{
+    p1.set();
+    p2.set();
+    c1.set();
+    CHECK(!consumerFinished);
+    p3.set();
+    CHECK(consumerFinished);
+    co_return;
+};
+
+cppcoro::sync_wait(cppcoro::when_all_ready(consume(), unblock()));
+```
