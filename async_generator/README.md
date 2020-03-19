@@ -79,6 +79,8 @@ runs to completion or reaches the next `co_yield` expression.
 Let's check two interesting test cases from `cppcoro`, it's very useful, it help
 us to understand how to use `async_generator` and usages.
 
+## First Test Case
+
 ```c++
 #include "doctest/doctest.h"
 
@@ -194,5 +196,65 @@ The `when_all_ready` function is used to create a new awaitable that completes
 when all of the input awaitables complete. Then returned awaitable is
 passed to the `sync_wait` function. The `sync_wait` function is used to
 synchronously wait till the specified awaitable completes. The specified
-awaitable will be `co_await`ed on current thread.  
-The `unblock` task is created to set events, and resumes suspended tasks.
+awaitable will be `co_await`ed on current thread. The `unblock` task is created
+to set events, and resumes suspended tasks.  
+
+## Second Test Case
+
+```c++
+TEST_CASE("fmap")
+{
+    // ...
+}
+```
+
+This test case shows the `fmap` function usages in conjunction with
+`async_generator`. Let's see the test body.  
+
+```c++
+// ...
+using cppcoro::async_generator;
+using cppcoro::fmap;
+
+auto iota = [](int count) -> async_generator<int>
+{
+  for (int i = 0; i < count; ++i)
+  {
+    co_yield i;
+  }
+};
+```
+
+The `iota` function is declared as a lambda function, and it's return type is an
+object from `async_generator<int>` and it causes this lambda function to turn
+into a coroutine. `iota` is a generator that generates a sequence of values
+lazily.  
+
+```c++
+// ...
+auto squares = iota(5) | fmap([](auto x) { return x * x; });
+```
+
+Firstly an object from the generator is created by calling the `iota`
+function, then `fmap` function is used to apply the specified lambda function to
+the values of the generator. It seems very interesting with pipe notation.
+Now the `squares` is a new generator object that its values result from
+applying the lambda function to the `iota` generator.  
+
+```c++
+//...
+cppcoro::sync_wait([&]() -> cppcoro::task<>
+{
+  auto it = co_await squares.begin();
+  CHECK(*it == 0);
+  CHECK(*co_await ++it == 1);
+  CHECK(*co_await ++it == 4);
+  CHECK(*co_await ++it == 9);
+  CHECK(*co_await ++it == 16);
+  CHECK(co_await ++it == squares.end());
+}());
+```
+
+Finally, a task object is created to run the `squares` generator and also check
+it's values. You see the values result from applying the lambda function to the
+`iota` generator.
