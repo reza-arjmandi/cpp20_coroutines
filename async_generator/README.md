@@ -88,10 +88,8 @@ TEST_CASE("async producer with async consumer"
  * doctest::description{
   "This test tries to cover the different state-transition code-paths\n"
   "- consumer resuming producer and producer completing asynchronously\n"
-  "- producer resuming consumer and consumer requesting next value \
-synchronously\n"
-  "- producer resuming consumer and consumer requesting next value \
-asynchronously" })
+  "- producer resuming consumer and consumer requesting next value synchronously\n"
+  "- producer resuming consumer and consumer requesting next value asynchronously" })
 {
     // ...
 }
@@ -191,3 +189,10 @@ auto unblock = [&]() -> cppcoro::task<>
 
 cppcoro::sync_wait(cppcoro::when_all_ready(consume(), unblock()));
 ```
+
+The `when_all_ready` function is used to create a new awaitable that completes
+when all of the input awaitables complete. Then returned awaitable is
+passed to the `sync_wait` function. The `sync_wait` function is used to
+synchronously wait till the specified awaitable completes. The specified
+awaitable will be `co_await`ed on current thread.  
+The `unblock` task is created to set events, and resumes suspended tasks.
