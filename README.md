@@ -135,3 +135,32 @@ void producer()
   event.set();
 }
 ```
+
+## `async_generator`
+
+if you want to learn how it works, you can see this video:  
+[C++20 coroutines, async generator](https://youtu.be/4xBbuOu2kig)
+  
+[slides](https://docs.google.com/presentation/d/1oN16fJMjkyHxOETjAGNVjzwoYRoJS5Gb8pNdNeIHG6I/edit?usp=sharing)
+  
+async_generator example:
+
+```c++
+cppcoro::async_generator<int> ticker(int count, threadpool& tp)
+{
+  for (int i = 0; i < count; ++i)
+  {
+    co_await tp.delay(std::chrono::seconds(1));
+    co_yield i;
+  }
+}
+
+cppcoro::task<> consumer(threadpool& tp)
+{
+  auto sequence = ticker(10, tp);
+  for co_await(std::uint32_t i : sequence)
+  {
+    std::cout << "Tick " << i << std::endl;
+  }
+}
+```
